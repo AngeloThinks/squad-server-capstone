@@ -3,6 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Messages from "./dbMessages.js";
 import Pusher from "pusher";
+import cors from "cors";
 
 //app config
 const app = express();
@@ -18,6 +19,7 @@ const pusher = new Pusher({
 
 //middleware
 app.use(express.json());
+app.use(cors());
 
 //DB config
 const connection_url =
@@ -43,8 +45,10 @@ db.once("open", () => {
     if (change.operationType === "insert") {
       const messageDetails = change.fullDocument;
       pusher.trigger("messages", "inserted", {
-        name: messageDetails.user,
+        name: messageDetails.name,
         message: messageDetails.message,
+        timestamp: messageDetails.timestamp,
+        received: messageDetails.received,
       });
     } else {
       console.log("Error triggering Pusher");
@@ -53,7 +57,7 @@ db.once("open", () => {
 });
 
 //mongo user:admin password:LyZQhHyVyi4FH6c
-
+ 
 //api routes
 app.get("/", (req, res) => res.status(200).send("hello world"));
 
